@@ -62,4 +62,4 @@ main() {
 	esac
 }
 
-if [[ -n "${ENABLE_S3_SYNC}" ]]; then main "$@"; else echo "ENABLE_S3_SYNC is not set => Exit!"; fi
+if [[ -n "${ENABLE_S3_SYNC-}" ]]; then main "$@"; else echo 'ENABLE_S3_SYNC is not set'; while :; do sleep 1d; done; fi
