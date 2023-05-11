@@ -1,23 +1,19 @@
 # docker build -f s3sync.Dockerfile . -t registryhub/tinyfilemanager-s3sync
 
 # FROM tinyfilemanager/tinyfilemanager
-FROM php:cli-alpine3.15
+FROM php:cli-alpine
+
+ARG OS_ARCH=Linux-64bit
 
 RUN apk -v --update --no-cache add \
         libzip-dev oniguruma-dev \
-        python3 py3-pip py3-magic py3-six \
-        groff \
-        less \
-        mailcap \
         bash inotify-tools \
         dumb-init
 
-RUN pip3 install --ignore-installed --upgrade awscli==1.14.5 s3cmd==2.0.1 python-magic six
-# RUN apk -v --purge del py3-pip
-# RUN rm -f /var/cache/apk/*
-
 RUN docker-php-ext-install \
     zip 
+
+RUN wget -q -c "https://github.com/peak/s5cmd/releases/download/v2.0.0/s5cmd_2.0.0_${OS_ARCH}.tar.gz" -O - | tar -xz -C /usr/local/bin/ && chmod +x /usr/local/bin/s5cmd
 
 ENV S3_PATH S3_ENDPOINT LOCAL_DIR 
 ADD s3sync.sh /app/s3sync.sh

@@ -6,22 +6,22 @@ S3_PATH="${S3_PATH:-s3://${AWS_BUCKET_NAME}/}"
 S3_ENDPOINT="${S3_ENDPOINT:-}"
 
 download() {
-	aws s3 sync \
-		"${S3_PATH}" \
-		"${LOCAL_DIR}" \
-		--endpoint="${S3_ENDPOINT}" \
-		--delete
+	if which s5cmd >/dev/null; then
+		s5cmd --endpoint-url="${S3_ENDPOINT}" sync --delete "${S3_PATH%/}/*" "${LOCAL_DIR%/}/"
+	else
+		aws s3 sync "${S3_PATH}" "${LOCAL_DIR}" --endpoint="${S3_ENDPOINT}" --delete
+	fi
 
-	# fix any permissions issues
+	# fix any permissions issues%
 	chmod -vR a=rwx "${LOCAL_DIR}"
 }
 
 upload() {
-	aws s3 sync \
-		"${LOCAL_DIR}" \
-		"${S3_PATH}" \
-		--endpoint="${S3_ENDPOINT}" \
-		--delete
+	if which s5cmd >/dev/null; then
+		s5cmd --endpoint-url="${S3_ENDPOINT}" sync --delete "${LOCAL_DIR%/}/*" "${S3_PATH%/}/" 
+	else
+		aws s3 sync "${LOCAL_DIR}" "${S3_PATH}" --endpoint="${S3_ENDPOINT}" --delete
+	fi
 }
 
 watch_upload() {
