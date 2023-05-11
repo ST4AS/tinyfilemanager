@@ -62,4 +62,4 @@ main() {
 	esac
 }
 
-main "$@"
+if [[ -n "${ENABLE_S3_SYNC}" ]]; then main "$@"; else echo "ENABLE_S3_SYNC is not set => Exit!"; fi
