@@ -6,6 +6,8 @@ S3_PATH="${S3_PATH:-s3://${AWS_BUCKET_NAME}/}"
 S3_ENDPOINT="${S3_ENDPOINT:-}"
 
 download() {
+	if [[ -f "${LOCAL_DIR%/}/s3sync.downloaded" ]]; then return 0; fi
+
 	if which s5cmd >/dev/null; then
 		s5cmd --endpoint-url="${S3_ENDPOINT}" sync --delete "${S3_PATH%/}/*" "${LOCAL_DIR%/}/"
 	else
@@ -14,6 +16,8 @@ download() {
 
 	# fix any permissions issues%
 	chmod -vR a=rwx "${LOCAL_DIR}"
+
+	echo $(date '+%Y-%m-%d-%H:%M:%S') > "${LOCAL_DIR%/}/s3sync.downloaded"
 }
 
 upload() {
