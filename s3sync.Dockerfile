@@ -15,7 +15,7 @@ RUN docker-php-ext-install \
 
 RUN wget -q -c "https://github.com/peak/s5cmd/releases/download/v2.0.0/s5cmd_2.0.0_${OS_ARCH}.tar.gz" -O - | tar -xz -C /usr/local/bin/ && chmod +x /usr/local/bin/s5cmd
 
-ENV S3_PATH S3_ENDPOINT LOCAL_DIR 
+ENV S3SYNC_ENABLE S3SYNC_PATH S3SYNC_LOCAL_DIR AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_BUCKET_NAME S3_ENDPOINT
 ADD s3sync.sh /app/s3sync.sh
 RUN chmod a+rx /app/s3sync.sh
 
