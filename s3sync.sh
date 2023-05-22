@@ -16,6 +16,7 @@ download() {
 		cmd="aws s3 sync '${S3SYNC_PATH}' '${S3SYNC_LOCAL_DIR}' --endpoint='${S3_ENDPOINT}' --delete"
 	fi
 
+	echo $cmd $@
 	eval $cmd $@
 
 	# fix any permissions issues%
@@ -31,6 +32,7 @@ upload() {
 		cmd="aws s3 sync '${S3SYNC_LOCAL_DIR}' '${S3SYNC_PATH}' --endpoint='${S3_ENDPOINT}' --delete"
 	fi
 
+	echo $cmd $@
 	eval $cmd $@
 }
 
@@ -73,4 +75,4 @@ main() {
 	esac
 }
 
-if [[ -n "${S3SYNC_ENABLE-}" ]]; then main "$@"; else echo 'S3SYNC_ENABLE is not set'; while :; do sleep 1d; done; fi
+if [[ -n "${S3SYNC_ENABLE-}" ]]; then main $@; else echo 'S3SYNC_ENABLE is not set'; sleep infinity; fi
