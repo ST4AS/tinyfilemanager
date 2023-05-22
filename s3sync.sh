@@ -37,6 +37,8 @@ upload() {
 }
 
 watch_upload() {
+	echo "...watching '$S3SYNC_LOCAL_DIR'"
+	if [ ! -d "$S3SYNC_LOCAL_DIR" ]; then return 0; fi
 	inotifywait -mr "${S3SYNC_LOCAL_DIR}" -e create -e delete -e move -e modify --format '%w%f %e' | \
 	while read -r file _ ; do
 		# ignore sqlite tmp files
@@ -45,7 +47,7 @@ watch_upload() {
 		fi
 		# sleeping before execution to accumulate any other file changes...
 		sleep 5
-		upload "$@"
+		upload "$@" 2>&1 || true
 	done
 }
 
