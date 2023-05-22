@@ -11,10 +11,9 @@ RUN apk -v --update --no-cache add \
     libzip-dev oniguruma-dev \
     bash inotify-tools \
     dumb-init \
-    docker-php-ext-install \
-    zip \
-    wget -q -c "https://github.com/peak/s5cmd/releases/download/v2.0.0/s5cmd_2.0.0_${OS_ARCH}.tar.gz" -O - | tar -xz -C /usr/local/bin/ && chmod +x /usr/local/bin/s5cmd \
-    mkdir -p /var/www/html/data /app
+    && docker-php-ext-install zip \
+    && wget -q -c "https://github.com/peak/s5cmd/releases/download/v2.0.0/s5cmd_2.0.0_${OS_ARCH}.tar.gz" -O - | tar -xz -C /usr/local/bin/ && chmod +x /usr/local/bin/s5cmd \
+    && mkdir -p /var/www/html/data /app
 
 COPY s3sync.sh /app/s3sync.sh
 RUN chmod a+rx /app/s3sync.sh
