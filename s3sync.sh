@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ueo pipefail
+set -eo pipefail
 
 ME=$(basename "$0")
 S3_BUCKET="${AWS_BUCKET_NAME:-}"
