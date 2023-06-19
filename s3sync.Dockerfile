@@ -5,7 +5,8 @@ FROM php:cli-alpine
 
 ARG OS_ARCH=Linux-64bit
 
-ENV S3SYNC_ENABLE S3SYNC_PATH S3SYNC_LOCAL_DIR AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_BUCKET_NAME S3_ENDPOINT
+ENV S3SYNC_ENABLE S3SYNC_LOCAL_DIR S3SYNC_PATH
+ENV AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_BUCKET_NAME S3_ENDPOINT
 
 RUN apk -v --update --no-cache add \
     libzip-dev oniguruma-dev \
@@ -25,4 +26,4 @@ RUN sed -i "/'user' => .*/d" "index.php"
 RUN sed -i "s/'admin' => .*/'admin' => password_hash(getenv('FILEMANAGER_PASSWORD'), PASSWORD_DEFAULT)/" "index.php"
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["bash", "-c", "/app/s3sync.sh upload & php -S 0.0.0.0:$PORT"]
+CMD ["bash", "-c", "/app/s3sync.sh auto & php -S 0.0.0.0:$PORT"]
