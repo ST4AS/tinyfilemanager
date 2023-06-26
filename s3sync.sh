@@ -22,12 +22,12 @@ download() {
 	if [[ -f "${S3SYNC_LOCAL_DIR%/}/s3sync.downloaded" ]]; then return 0; fi
 
 	if which s5cmd >/dev/null; then
-		cmd="s5cmd --endpoint-url='${S3_ENDPOINT}' sync --delete '${S3SYNC_PATH%/}/*' '${S3SYNC_LOCAL_DIR%/}/'"
+		cmd="s5cmd --endpoint-url='${S3_ENDPOINT}' sync '${S3SYNC_PATH%/}/*' '${S3SYNC_LOCAL_DIR%/}/'"
 	else
-		cmd="aws s3 sync '${S3SYNC_PATH}' '${S3SYNC_LOCAL_DIR}' --endpoint='${S3_ENDPOINT}' --delete"
+		cmd="aws s3 sync '${S3SYNC_PATH}' '${S3SYNC_LOCAL_DIR}' --endpoint='${S3_ENDPOINT}'"
 	fi
 
-	echo $cmd $@
+	# echo $cmd $@
 	eval $cmd $@
 
 	# fix any permissions issues%
@@ -54,7 +54,7 @@ upload() {
 			cmd="aws s3 sync '${S3SYNC_LOCAL_DIR}' '${S3SYNC_PATH}' --endpoint='${S3_ENDPOINT}' --delete"
 		fi
 
-		echo $cmd $@
+		# echo $cmd $@
 		eval $cmd $@
 	done
 }
@@ -62,6 +62,7 @@ upload() {
 watch_upload() {
 	echo "...watching '$S3SYNC_LOCAL_DIR'"
 	if [ ! -d "$S3SYNC_LOCAL_DIR" ]; then return 0; fi
+
 	inotifywait -mr "${S3SYNC_LOCAL_DIR}" -e create -e delete -e move -e modify --format '%w%f %e' | \
 	while read -r file _ ; do
 		# ignore sqlite tmp files
@@ -69,7 +70,7 @@ watch_upload() {
 			continue
 		fi
 		# sleeping before execution to accumulate any other file changes...
-		sleep 5
+		sleep 30
 		upload "$@" 2>&1 || true
 	done
 }
@@ -84,6 +85,7 @@ main() {
 			;;
 		auto)
 			download "${@:2}"
+			sleep 10
 			watch_upload "${@:2}"
 			;;
 		help|--help|-h)
