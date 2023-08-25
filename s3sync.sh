@@ -106,4 +106,4 @@ main() {
 	esac
 }
 
-if [[ -n "${S3SYNC_ENABLE-}" ]]; then main $@; else echo 'S3SYNC_ENABLE is not set'; sleep infinity; fi
+if [[ -n "${S3SYNC_ENABLE}" ]]; then main $@; else echo 'S3SYNC_ENABLE is not set'; sleep infinity; fi
