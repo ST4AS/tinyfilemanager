@@ -5,12 +5,18 @@ FROM php:cli-alpine
 
 ARG OS_ARCH=Linux-64bit
 
-ENV S3SYNC_ENABLE S3SYNC_LOCAL_DIR S3SYNC_PATH
-ENV AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_BUCKET_NAME S3_ENDPOINT
+ENV \
+ S3SYNC_ENABLE="" \
+ S3SYNC_LOCAL_DIR="" \
+ S3SYNC_PATH="" \
+ AWS_ACCESS_KEY_ID="" \
+ AWS_SECRET_ACCESS_KEY="" \
+ AWS_BUCKET_NAME="" \
+ S3_ENDPOINT=""
 
 RUN apk -v --update --no-cache add \
     libzip-dev oniguruma-dev \
-    bash inotify-tools \
+    bash openssh openssh-keygen nano curl wget mc inotify-tools \
     dumb-init \
     && docker-php-ext-install zip \
     && wget -q -c "https://github.com/peak/s5cmd/releases/download/v2.0.0/s5cmd_2.0.0_${OS_ARCH}.tar.gz" -O - | tar -xz -C /usr/local/bin/ && chmod +x /usr/local/bin/s5cmd \
