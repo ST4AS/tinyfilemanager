@@ -32,4 +32,4 @@ RUN sed -i "/'user' => .*/d" "index.php"
 RUN sed -i "s/'admin' => .*/'admin' => password_hash(getenv('FILEMANAGER_PASSWORD'), PASSWORD_DEFAULT)/" "index.php"
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["bash", "-c", "/app/s3sync.sh auto & php -S 0.0.0.0:$PORT"]
+CMD ["bash", "-c", "/app/s3sync.sh auto & php -S 0.0.0.0:$PORT &> /dev/null"]
