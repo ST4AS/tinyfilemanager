@@ -9,6 +9,31 @@ PARSED_BUCS=($(echo $AWS_BUCKET_NAME | tr ',' ' '))
 PARSED_ENPS=($(echo $S3_ENDPOINT | tr ',' ' '))
 PARSED_SPAS=($(echo $S3SYNC_PATH | tr ',' ' '))
 
+check() {
+	len=${#PARSED_KEYS[@]}
+	echo "len:$len"
+
+	for (( i=0; i<len; i++ )); do
+		AWS_ACCESS_KEY_ID="${PARSED_KEYS[$i]}"
+		AWS_SECRET_ACCESS_KEY="${PARSED_SECS[$i]}"
+		AWS_BUCKET_NAME="${PARSED_BUCS[$i]}"
+		S3_BUCKET="${AWS_BUCKET_NAME:-}"
+		S3_ENDPOINT="${PARSED_ENPS[$i]}"
+		S3_ENDPOINT_URL="${S3_ENDPOINT:-}"
+		S3SYNC_PATH="${PARSED_SPAS[$i]}"
+		S3SYNC_PATH="${S3SYNC_PATH:-s3://${AWS_BUCKET_NAME}/}"
+
+		echo "---"
+		echo "AWS_ACCESS_KEY_ID:$AWS_ACCESS_KEY_ID"
+		echo "AWS_SECRET_ACCESS_KEY:$AWS_SECRET_ACCESS_KEY"
+		echo "AWS_BUCKET_NAME:$AWS_BUCKET_NAME"
+		echo "S3_BUCKET:$S3_BUCKET"
+		echo "S3_ENDPOINT_URL:$S3_ENDPOINT_URL"
+		echo "S3SYNC_PATH:$S3SYNC_PATH"
+		echo "S3SYNC_LOCAL_DIR:$S3SYNC_LOCAL_DIR"
+	done
+}
+
 download() {
 	AWS_ACCESS_KEY_ID="${PARSED_KEYS[0]}"
 	AWS_SECRET_ACCESS_KEY="${PARSED_SECS[0]}"
@@ -19,16 +44,16 @@ download() {
 	S3SYNC_PATH="${PARSED_SPAS[0]}"
 	S3SYNC_PATH="${S3SYNC_PATH:-s3://${AWS_BUCKET_NAME}/}"
 
-	if [[ -f "${S3SYNC_LOCAL_DIR%/}/s3sync.downloaded" ]]; then return 0; fi
+	if [[ -f "${S3SYNC_LOCAL_DIR%/}/s3sync.downloaded" ]]; then echo 'Info: local dir is already downloaded, remove the s3sync.downloaded to retry'; return 0; fi
 
 	if which s5cmd >/dev/null; then
-		cmd="s5cmd --endpoint-url='${S3_ENDPOINT}' sync '${S3SYNC_PATH%/}/*' '${S3SYNC_LOCAL_DIR%/}/'"
+		cmd="s5cmd --endpoint-url='${S3_ENDPOINT}' sync $@ '${S3SYNC_PATH%/}/*' '${S3SYNC_LOCAL_DIR%/}/'"
 	else
-		cmd="aws s3 sync '${S3SYNC_PATH}' '${S3SYNC_LOCAL_DIR}' --endpoint='${S3_ENDPOINT}'"
+		cmd="aws s3 sync '${S3SYNC_PATH}' '${S3SYNC_LOCAL_DIR}' --endpoint='${S3_ENDPOINT}' $@"
 	fi
 
 	# echo $cmd $@
-	eval $cmd $@
+	eval $cmd
 
 	# fix any permissions issues%
 	chmod -vR a=rwx "${S3SYNC_LOCAL_DIR}"
@@ -38,6 +63,7 @@ download() {
 
 upload() {
 	len=${#PARSED_KEYS[@]}
+
 	for (( i=0; i<len; i++ )); do
 		AWS_ACCESS_KEY_ID="${PARSED_KEYS[$i]}"
 		AWS_SECRET_ACCESS_KEY="${PARSED_SECS[$i]}"
@@ -49,13 +75,13 @@ upload() {
 		S3SYNC_PATH="${S3SYNC_PATH:-s3://${AWS_BUCKET_NAME}/}"
 
 		if which s5cmd >/dev/null; then
-			cmd="s5cmd --endpoint-url='${S3_ENDPOINT}' sync --delete '${S3SYNC_LOCAL_DIR%/}/*' '${S3SYNC_PATH%/}/'"
+			cmd="s5cmd --endpoint-url='${S3_ENDPOINT}' sync --delete $@ '${S3SYNC_LOCAL_DIR%/}/*' '${S3SYNC_PATH%/}/'"
 		else
-			cmd="aws s3 sync '${S3SYNC_LOCAL_DIR}' '${S3SYNC_PATH}' --endpoint='${S3_ENDPOINT}' --delete"
+			cmd="aws s3 sync '${S3SYNC_LOCAL_DIR}' '${S3SYNC_PATH}' --endpoint='${S3_ENDPOINT}' --delete $@"
 		fi
 
-		# echo $cmd $@
-		eval $cmd $@
+		# echo $cmd
+		eval $cmd || true
 	done
 }
 
@@ -89,7 +115,10 @@ main() {
 			download "${@:2}"
 			;;
 		upload)
-			watch_upload "${@:2}"
+			upload "${@:2}"
+			;;
+		check)
+			check "${@:2}"
 			;;
 		auto)
 			download "${@:2}"
@@ -101,9 +130,13 @@ main() {
 			Usage: ${ME} [command] [extra parameters]
 
 			Commands:
-			  upload - watch for changes in S3SYNC_LOCAL_DIR and sync S3SYNC_LOCAL_DIR to S3
-			    Example: /app/s3sync.sh upload --exclude "*.txt" --exclude "*.gz"
-			  download - download all remote files to S3SYNC_LOCAL_DIR and exit
+			  download: download all remote files to S3SYNC_LOCAL_DIR and exit
+			  ---
+			  upload: sync S3SYNC_LOCAL_DIR to S3
+			    Ex: /app/s3sync.sh upload --exclude "*.txt" --exclude "*.gz"
+			  ---
+			  auto: watch for changes in S3SYNC_LOCAL_DIR and sync S3SYNC_LOCAL_DIR to S3
+			    Ex: /app/s3sync.sh auto --exclude "*.txt" --exclude "*.gz"
 			EOF
 			exit 0
 			;;
